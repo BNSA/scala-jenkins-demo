@@ -1,72 +1,101 @@
 pipeline {
     agent any
-
-    options {
-        disableConcurrentBuilds()           // Prevents overlapping builds on the same job
-        disableResume()                     // ← Critical: stops "resuming after restart" hangs
-        timeout(time: 20, unit: 'MINUTES')  // Auto-abort if stuck too long (adjust as needed)
+    
+    environment {
+        SBT_OPTS = '-Xmx2048M -Xss2M -XX:+CMSClassUnloadingEnabled'
     }
-
+    
+    options {
+        timeout(time: 30, unit: 'MINUTES')
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        disableConcurrentBuilds()
+    }
+    
     stages {
         stage('Environment Info') {
             steps {
                 echo '=== Build Environment ==='
                 echo "Build Number: ${env.BUILD_NUMBER}"
-                echo "Branch: ${env.BRANCH_NAME ?: 'main'}"
+                echo "Branch: ${env.BRANCH_NAME}"
                 sh 'java -version'
-                sh 'which sbt || echo "SBT not found in PATH"'
-                sh 'sbt --version || echo "sbt --version failed"'
+                sh 'which sbt'
+                sh 'sbt sbtVersion'
             }
         }
-
+        
         stage('Checkout') {
             steps {
                 echo '=== Checking out code ==='
                 checkout scm
             }
         }
-
-        stage('Compile') {
+        
+        stage('Clean Cache') {
             steps {
-                echo '=== Compiling Scala code ==='
-                sh 'sbt clean compile'
-            }
-        }
-
-        stage('Test') {
-            steps {
-                echo '=== Running tests ==='
-                sh 'sbt test'
-            }
-            post {
-                always {
-                    junit allowEmptyResults: true,
-                          testResults: '**/target/test-reports/*.xml'
+                echo '=== Cleaning SBT cache ==='
+                script {
+                    sh '''
+                        rm -rf ~/.ivy2/cache/com.example
+                        rm -rf target
+                        rm -rf project/target
+                    '''
                 }
             }
         }
-
+        
+        stage('Download Dependencies') {
+            steps {
+                echo '=== Downloading dependencies ==='
+                timeout(time: 15, unit: 'MINUTES') {
+                    sh 'sbt -v update'
+                }
+            }
+        }
+        
+        stage('Compile') {
+            steps {
+                echo '=== Compiling Scala code ==='
+                timeout(time: 10, unit: 'MINUTES') {
+                    sh 'sbt -v clean compile'
+                }
+            }
+        }
+        
+        stage('Test') {
+            steps {
+                echo '=== Running tests ==='
+                timeout(time: 15, unit: 'MINUTES') {
+                    sh 'sbt -v test'
+                }
+            }
+        }
+        
         stage('Package') {
             steps {
                 echo '=== Packaging application ==='
-                sh 'sbt package'
+                timeout(time: 10, unit: 'MINUTES') {
+                    sh 'sbt package'
+                }
             }
         }
     }
-
+    
     post {
-        always {
-            cleanWs()  // Cleans workspace after every build (good for sbt)
-            echo "=== Pipeline completed ==="
-        }
         success {
-            echo '✅ BUILD SUCCESSFUL!'
+            echo '=== Build Successful ==='
         }
         failure {
-            echo '❌ BUILD FAILED!'
+            echo '=== Build Failed ==='
         }
-        aborted {
-            echo '⚠️ BUILD ABORTED!'
+        always {
+            echo '=== Cleaning up workspace ==='
+            cleanWs(
+                deleteDirs: true,
+                patterns: [
+                    [pattern: 'target/**', type: 'INCLUDE'],
+                    [pattern: '.ivy2/**', type: 'INCLUDE']
+                ]
+            )
         }
     }
 }
