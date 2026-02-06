@@ -2,7 +2,7 @@ pipeline {
     agent any
     
     environment {
-        SBT_OPTS = '-Xmx2048M -Xss2M -XX:+CMSClassUnloadingEnabled'
+        SBT_OPTS = '-Xmx2048M -Xss2M'
     }
     
     options {
