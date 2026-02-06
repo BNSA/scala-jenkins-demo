@@ -19,7 +19,6 @@ pipeline {
                 echo "Branch: ${env.BRANCH_NAME}"
                 sh 'java -version'
                 sh 'which sbt'
-                sh 'sbt sbtVersion'
             }
         }
         
@@ -47,7 +46,7 @@ pipeline {
             steps {
                 echo '=== Downloading dependencies ==='
                 timeout(time: 15, unit: 'MINUTES') {
-                    sh 'sbt -v update'
+                    sh 'sbt -v -batch update'
                 }
             }
         }
@@ -56,7 +55,7 @@ pipeline {
             steps {
                 echo '=== Compiling Scala code ==='
                 timeout(time: 10, unit: 'MINUTES') {
-                    sh 'sbt -v clean compile'
+                    sh 'sbt -v -batch clean compile'
                 }
             }
         }
@@ -65,7 +64,7 @@ pipeline {
             steps {
                 echo '=== Running tests ==='
                 timeout(time: 15, unit: 'MINUTES') {
-                    sh 'sbt -v test'
+                    sh 'sbt -v -batch test'
                 }
             }
         }
@@ -74,7 +73,7 @@ pipeline {
             steps {
                 echo '=== Packaging application ==='
                 timeout(time: 10, unit: 'MINUTES') {
-                    sh 'sbt package'
+                    sh 'sbt -batch package'
                 }
             }
         }
