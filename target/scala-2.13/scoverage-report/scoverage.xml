@@ -1,0 +1,120 @@
+<scoverage 
+statement-count="22" statements-invoked="10" statement-rate="45.45" branch-rate="100.00" version="1.0" timestamp="1770454040314">
+    <packages>
+        <package name="com.example" statement-count="22" statements-invoked="10" statement-rate="45.45">
+            <classes>
+                <class 
+                name="com.example.DataProcessor" filename="com/example/DataProcessor.scala" statement-count="12" statements-invoked="0" statement-rate="0.00" branch-rate="0.00">
+                    <methods>
+                        <method 
+                        name="com.example/DataProcessor/aggregateByKey" statement-count="5" statements-invoked="0" statement-rate="0.00" branch-rate="0.00">
+                            <statements>
+                                <statement 
+                                package="com.example" class="DataProcessor" class-type="Class" full-class-name="com.example.DataProcessor" source="/home/badre/scala-jenkins-demo/src/main/scala/com/example/DataProcessor.scala" method="aggregateByKey" start="916" end="938" line="34" branch="false" invocation-count="0" ignored="false">
+</statement>
+                                <statement 
+                                package="com.example" class="DataProcessor" class-type="Class" full-class-name="com.example.DataProcessor" source="/home/badre/scala-jenkins-demo/src/main/scala/com/example/DataProcessor.scala" method="aggregateByKey" start="1024" end="1052" line="37" branch="false" invocation-count="0" ignored="false">
+</statement>
+                                <statement 
+                                package="com.example" class="DataProcessor" class-type="Class" full-class-name="com.example.DataProcessor" source="/home/badre/scala-jenkins-demo/src/main/scala/com/example/DataProcessor.scala" method="aggregateByKey" start="986" end="1014" line="36" branch="false" invocation-count="0" ignored="false">
+</statement>
+                                <statement 
+                                package="com.example" class="DataProcessor" class-type="Class" full-class-name="com.example.DataProcessor" source="/home/badre/scala-jenkins-demo/src/main/scala/com/example/DataProcessor.scala" method="aggregateByKey" start="948" end="976" line="35" branch="false" invocation-count="0" ignored="false">
+</statement>
+                                <statement 
+                                package="com.example" class="DataProcessor" class-type="Class" full-class-name="com.example.DataProcessor" source="/home/badre/scala-jenkins-demo/src/main/scala/com/example/DataProcessor.scala" method="aggregateByKey" start="874" end="1060" line="33" branch="false" invocation-count="0" ignored="false">
+</statement>
+                            </statements>
+</method>
+                        <method 
+                        name="com.example/DataProcessor/processData" statement-count="6" statements-invoked="0" statement-rate="0.00" branch-rate="0.00">
+                            <statements>
+                                <statement 
+                                package="com.example" class="DataProcessor" class-type="Class" full-class-name="com.example.DataProcessor" source="/home/badre/scala-jenkins-demo/src/main/scala/com/example/DataProcessor.scala" method="processData" start="466" end="486" line="17" branch="false" invocation-count="0" ignored="false">
+</statement>
+                                <statement 
+                                package="com.example" class="DataProcessor" class-type="Class" full-class-name="com.example.DataProcessor" source="/home/badre/scala-jenkins-demo/src/main/scala/com/example/DataProcessor.scala" method="processData" start="551" end="561" line="19" branch="false" invocation-count="0" ignored="false">
+</statement>
+                                <statement 
+                                package="com.example" class="DataProcessor" class-type="Class" full-class-name="com.example.DataProcessor" source="/home/badre/scala-jenkins-demo/src/main/scala/com/example/DataProcessor.scala" method="processData" start="519" end="531" line="18" branch="false" invocation-count="0" ignored="false">
+</statement>
+                                <statement 
+                                package="com.example" class="DataProcessor" class-type="Class" full-class-name="com.example.DataProcessor" source="/home/badre/scala-jenkins-demo/src/main/scala/com/example/DataProcessor.scala" method="processData" start="456" end="694" line="19" branch="false" invocation-count="0" ignored="false">
+</statement>
+                                <statement 
+                                package="com.example" class="DataProcessor" class-type="Class" full-class-name="com.example.DataProcessor" source="/home/badre/scala-jenkins-demo/src/main/scala/com/example/DataProcessor.scala" method="processData" start="506" end="517" line="18" branch="false" invocation-count="0" ignored="false">
+</statement>
+                                <statement 
+                                package="com.example" class="DataProcessor" class-type="Class" full-class-name="com.example.DataProcessor" source="/home/badre/scala-jenkins-demo/src/main/scala/com/example/DataProcessor.scala" method="processData" start="572" end="686" line="22" branch="false" invocation-count="0" ignored="false">
+</statement>
+                            </statements>
+</method>
+                        <method 
+                        name="com.example/DataProcessor/apply" statement-count="1" statements-invoked="0" statement-rate="0.00" branch-rate="0.00">
+                            <statements>
+                                <statement 
+                                package="com.example" class="DataProcessor" class-type="Object" full-class-name="com.example.DataProcessor" source="/home/badre/scala-jenkins-demo/src/main/scala/com/example/DataProcessor.scala" method="apply" start="1141" end="1165" line="43" branch="false" invocation-count="0" ignored="false">
+</statement>
+                            </statements>
+</method>
+                    </methods>
+</class>
+                <class 
+                name="com.example.Calculator" filename="com/example/Calculator.scala" statement-count="10" statements-invoked="10" statement-rate="100.00" branch-rate="100.00">
+                    <methods>
+                        <method 
+                        name="com.example/Calculator/divide" statement-count="7" statements-invoked="7" statement-rate="100.00" branch-rate="100.00">
+                            <statements>
+                                <statement 
+                                package="com.example" class="Calculator" class-type="Class" full-class-name="com.example.Calculator" source="/home/badre/scala-jenkins-demo/src/main/scala/com/example/Calculator.scala" method="divide" start="256" end="279" line="11" branch="false" invocation-count="1" ignored="false">
+</statement>
+                                <statement 
+                                package="com.example" class="Calculator" class-type="Class" full-class-name="com.example.Calculator" source="/home/badre/scala-jenkins-demo/src/main/scala/com/example/Calculator.scala" method="divide" start="241" end="245" line="11" branch="false" invocation-count="1" ignored="false">
+</statement>
+                                <statement 
+                                package="com.example" class="Calculator" class-type="Class" full-class-name="com.example.Calculator" source="/home/badre/scala-jenkins-demo/src/main/scala/com/example/Calculator.scala" method="divide" start="233" end="239" line="11" branch="false" invocation-count="1" ignored="false">
+</statement>
+                                <statement 
+                                package="com.example" class="Calculator" class-type="Class" full-class-name="com.example.Calculator" source="/home/badre/scala-jenkins-demo/src/main/scala/com/example/Calculator.scala" method="divide" start="269" end="279" line="11" branch="false" invocation-count="1" ignored="false">
+</statement>
+                                <statement 
+                                package="com.example" class="Calculator" class-type="Class" full-class-name="com.example.Calculator" source="/home/badre/scala-jenkins-demo/src/main/scala/com/example/Calculator.scala" method="divide" start="251" end="280" line="11" branch="true" invocation-count="1" ignored="false">
+</statement>
+                                <statement 
+                                package="com.example" class="Calculator" class-type="Class" full-class-name="com.example.Calculator" source="/home/badre/scala-jenkins-demo/src/main/scala/com/example/Calculator.scala" method="divide" start="251" end="280" line="11" branch="false" invocation-count="1" ignored="false">
+</statement>
+                                <statement 
+                                package="com.example" class="Calculator" class-type="Class" full-class-name="com.example.Calculator" source="/home/badre/scala-jenkins-demo/src/main/scala/com/example/Calculator.scala" method="divide" start="241" end="245" line="11" branch="true" invocation-count="1" ignored="false">
+</statement>
+                            </statements>
+</method>
+                        <method 
+                        name="com.example/Calculator/subtract" statement-count="1" statements-invoked="1" statement-rate="100.00" branch-rate="100.00">
+                            <statements>
+                                <statement 
+                                package="com.example" class="Calculator" class-type="Class" full-class-name="com.example.Calculator" source="/home/badre/scala-jenkins-demo/src/main/scala/com/example/Calculator.scala" method="subtract" start="120" end="125" line="6" branch="false" invocation-count="1" ignored="false">
+</statement>
+                            </statements>
+</method>
+                        <method 
+                        name="com.example/Calculator/add" statement-count="1" statements-invoked="1" statement-rate="100.00" branch-rate="100.00">
+                            <statements>
+                                <statement 
+                                package="com.example" class="Calculator" class-type="Class" full-class-name="com.example.Calculator" source="/home/badre/scala-jenkins-demo/src/main/scala/com/example/Calculator.scala" method="add" start="73" end="78" line="4" branch="false" invocation-count="1" ignored="false">
+</statement>
+                            </statements>
+</method>
+                        <method 
+                        name="com.example/Calculator/multiply" statement-count="1" statements-invoked="1" statement-rate="100.00" branch-rate="100.00">
+                            <statements>
+                                <statement 
+                                package="com.example" class="Calculator" class-type="Class" full-class-name="com.example.Calculator" source="/home/badre/scala-jenkins-demo/src/main/scala/com/example/Calculator.scala" method="multiply" start="167" end="172" line="8" branch="false" invocation-count="1" ignored="false">
+</statement>
+                            </statements>
+</method>
+                    </methods>
+</class>
+            </classes>
+        </package>
+    </packages>
+</scoverage>

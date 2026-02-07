@@ -1,0 +1,394 @@
+# Coverage data, format version: 3.0
+# Statement data:
+# - id
+# - source path
+# - package name
+# - class name
+# - class type (Class, Object or Trait)
+# - full class name
+# - method name
+# - start offset
+# - end offset
+# - line number
+# - symbol name
+# - tree name
+# - is branch
+# - invocations count
+# - is ignored
+# - description (can be multi-line)
+# '' sign
+# ------------------------------------------
+1
+src/main/scala/com/example/Calculator.scala
+com.example
+Calculator
+Class
+com.example.Calculator
+add
+73
+78
+4
+scala.Int.+
+Apply
+false
+0
+false
+a.+(b)
+
+2
+src/main/scala/com/example/Calculator.scala
+com.example
+Calculator
+Class
+com.example.Calculator
+subtract
+120
+125
+6
+scala.Int.-
+Apply
+false
+0
+false
+a.-(b)
+
+3
+src/main/scala/com/example/Calculator.scala
+com.example
+Calculator
+Class
+com.example.Calculator
+multiply
+167
+172
+8
+scala.Int.*
+Apply
+false
+0
+false
+a.*(b)
+
+4
+src/main/scala/com/example/Calculator.scala
+com.example
+Calculator
+Class
+com.example.Calculator
+divide
+233
+239
+11
+scala.Int.==
+Apply
+false
+0
+false
+b.==(0)
+
+5
+src/main/scala/com/example/Calculator.scala
+com.example
+Calculator
+Class
+com.example.Calculator
+divide
+241
+245
+11
+scala.None
+Select
+false
+0
+false
+scala.None
+
+6
+src/main/scala/com/example/Calculator.scala
+com.example
+Calculator
+Class
+com.example.Calculator
+divide
+241
+245
+11
+scala.None
+Block
+true
+0
+false
+scala.None
+
+7
+src/main/scala/com/example/Calculator.scala
+com.example
+Calculator
+Class
+com.example.Calculator
+divide
+269
+279
+11
+scala.Int.toDouble
+Select
+false
+0
+false
+b.toDouble
+
+8
+src/main/scala/com/example/Calculator.scala
+com.example
+Calculator
+Class
+com.example.Calculator
+divide
+256
+279
+11
+scala.Double./
+Apply
+false
+0
+false
+a.toDouble./(b.toDouble)
+
+9
+src/main/scala/com/example/Calculator.scala
+com.example
+Calculator
+Class
+com.example.Calculator
+divide
+251
+280
+11
+scala.Some.apply
+Apply
+false
+0
+false
+scala.Some.apply[Double](a.toDouble./(b.toDouble))
+
+10
+src/main/scala/com/example/Calculator.scala
+com.example
+Calculator
+Class
+com.example.Calculator
+divide
+251
+280
+11
+scala.Some.apply
+Block
+true
+0
+false
+scala.Some.apply[Double](a.toDouble./(b.toDouble))
+
+11
+src/main/scala/com/example/DataProcessor.scala
+com.example
+DataProcessor
+Class
+com.example.DataProcessor
+processData
+466
+486
+17
+org.apache.spark.sql.Column.>
+Apply
+false
+0
+false
+DataProcessor.this.spark.implicits.StringToColumn(scala.StringContext.apply("value")).$().>(threshold)
+
+12
+src/main/scala/com/example/DataProcessor.scala
+com.example
+DataProcessor
+Class
+com.example.DataProcessor
+processData
+506
+517
+18
+<nosymbol>
+Literal
+false
+0
+false
+"processed"
+
+13
+src/main/scala/com/example/DataProcessor.scala
+com.example
+DataProcessor
+Class
+com.example.DataProcessor
+processData
+519
+531
+18
+org.apache.spark.sql.Column.*
+Apply
+false
+0
+false
+DataProcessor.this.spark.implicits.StringToColumn(scala.StringContext.apply("value")).$().*(2)
+
+14
+src/main/scala/com/example/DataProcessor.scala
+com.example
+DataProcessor
+Class
+com.example.DataProcessor
+processData
+551
+561
+19
+<nosymbol>
+Literal
+false
+0
+false
+"category"
+
+15
+src/main/scala/com/example/DataProcessor.scala
+com.example
+DataProcessor
+Class
+com.example.DataProcessor
+processData
+572
+686
+22
+org.apache.spark.sql.Column.otherwise
+Apply
+false
+0
+false
+org.apache.spark.sql.functions.when(DataProcessor.this.spark.implicits.StringToColumn(scala.StringContext.apply("value")).$().>(threshold.*(2)), "high").when(DataProcessor.this.spark.implicits.StringToColumn(scala.StringContext.apply("value")).$().>(threshold), "medium").otherwise("low")
+
+16
+src/main/scala/com/example/DataProcessor.scala
+com.example
+DataProcessor
+Class
+com.example.DataProcessor
+processData
+456
+694
+19
+org.apache.spark.sql.Dataset.withColumn
+Apply
+false
+0
+false
+df.filter(DataProcessor.this.spark.implicits.StringToColumn(scala.StringContext.apply("value")).$().>(threshold)).withColumn("processed", DataProcessor.this.spark.implicits.StringToColumn(scala.StringContext.apply("value")).$().*(2)).withColumn("category", org.apache.spark.sql.functions.when(DataProcessor.this.spark.implicits.StringToColumn(scala.StringContext.apply("value")).$().>(threshold.*(2)), "high").when(DataProcessor.this.spark.implicits.StringToColumn(scala.StringContext.apply("value")).$().>(threshold), "medium").otherwise("low"))
+
+17
+src/main/scala/com/example/DataProcessor.scala
+com.example
+DataProcessor
+Class
+com.example.DataProcessor
+aggregateByKey
+916
+938
+34
+org.apache.spark.sql.Column.as
+Apply
+false
+0
+false
+org.apache.spark.sql.functions.count("*").as("count")
+
+18
+src/main/scala/com/example/DataProcessor.scala
+com.example
+DataProcessor
+Class
+com.example.DataProcessor
+aggregateByKey
+948
+976
+35
+org.apache.spark.sql.Column.as
+Apply
+false
+0
+false
+org.apache.spark.sql.functions.avg("value").as("avg_value")
+
+19
+src/main/scala/com/example/DataProcessor.scala
+com.example
+DataProcessor
+Class
+com.example.DataProcessor
+aggregateByKey
+986
+1014
+36
+org.apache.spark.sql.Column.as
+Apply
+false
+0
+false
+org.apache.spark.sql.functions.max("value").as("max_value")
+
+20
+src/main/scala/com/example/DataProcessor.scala
+com.example
+DataProcessor
+Class
+com.example.DataProcessor
+aggregateByKey
+1024
+1052
+37
+org.apache.spark.sql.Column.as
+Apply
+false
+0
+false
+org.apache.spark.sql.functions.min("value").as("min_value")
+
+21
+src/main/scala/com/example/DataProcessor.scala
+com.example
+DataProcessor
+Class
+com.example.DataProcessor
+aggregateByKey
+874
+1060
+33
+org.apache.spark.sql.RelationalGroupedDataset.agg
+Apply
+false
+0
+false
+df.groupBy(keyColumn).agg(org.apache.spark.sql.functions.count("*").as("count"), org.apache.spark.sql.functions.avg("value").as("avg_value"), org.apache.spark.sql.functions.max("value").as("max_value"), org.apache.spark.sql.functions.min("value").as("min_value"))
+
+22
+src/main/scala/com/example/DataProcessor.scala
+com.example
+DataProcessor
+Object
+com.example.DataProcessor
+apply
+1141
+1165
+43
+com.example.DataProcessor.<init>
+Apply
+false
+0
+false
+new DataProcessor(spark)
+
