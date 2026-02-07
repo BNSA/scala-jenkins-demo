@@ -6,7 +6,7 @@ pipeline {
     }
     
     environment {
-        SBT_OPTS = '-Xmx2G -XX:+CMSClassUnloadingEnabled'
+        SBT_OPTS = '-Xmx2G -Xss2M'
     }
     
     stages {
