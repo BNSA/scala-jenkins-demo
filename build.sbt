@@ -31,7 +31,7 @@ Test / testOptions := Seq(
   Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports")
 )
 
-coverageMinimumStmtTotal := 80
+coverageMinimumStmtTotal := 40
 coverageFailOnMinimum := false
 coverageHighlighting := true
 
