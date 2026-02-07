@@ -16,6 +16,26 @@ pipeline {
             }
         }
         
+        stage('Code Formatting Check') {
+            steps {
+                script {
+                    echo "Checking code formatting with Scalafmt..."
+                    def formatCheckResult = sh(
+                        script: 'sbt scalafmtCheckAll scalafmtSbtCheck',
+                        returnStatus: true
+                    )
+                    
+                    if (formatCheckResult != 0) {
+                        echo "⚠️  Code formatting issues found!"
+                        echo "Run 'sbt scalafmtAll scalafmtSbt' to fix formatting"
+                        unstable(message: "Code formatting check failed")
+                    } else {
+                        echo "✅ Code formatting check passed"
+                    }
+                }
+            }
+        }
+        
         stage('Compile') {
             steps {
                 sh 'sbt clean compile'
@@ -72,6 +92,9 @@ pipeline {
         }
         failure {
             echo 'Pipeline failed!'
+        }
+        unstable {
+            echo '⚠️  Pipeline completed with warnings (check formatting issues)'
         }
     }
 }
