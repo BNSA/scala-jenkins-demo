@@ -1,15 +1,14 @@
 pipeline {
     agent any
     
-    environment {
-        SBT_OPTS = '-Xmx2048M -Xss2M'
-        VERSION = "${BUILD_NUMBER}"
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        timeout(time: 30, unit: 'MINUTES')
+        timestamps()
     }
     
-    options {
-        timeout(time: 30, unit: 'MINUTES')
-        buildDiscarder(logRotator(numToKeepStr: '10'))
-        timestamps()
+    environment {
+        SBT_OPTS = '-Xmx2g -XX:+UseG1GC'
     }
     
     stages {
@@ -20,13 +19,8 @@ pipeline {
                 echo '═══════════════════════════════════════════'
                 checkout scm
                 script {
-                    try {
-                        env.GIT_COMMIT_SHORT = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-                        env.GIT_AUTHOR = sh(script: 'git log -1 --pretty=%an', returnStdout: true).trim()
-                    } catch (Exception e) {
-                        env.GIT_COMMIT_SHORT = 'unknown'
-                        env.GIT_AUTHOR = 'unknown'
-                    }
+                    env.GIT_COMMIT_SHORT = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
+                    env.GIT_AUTHOR = sh(returnStdout: true, script: 'git log -1 --pretty=%an').trim()
                 }
                 echo "✓ Commit: ${env.GIT_COMMIT_SHORT} by ${env.GIT_AUTHOR}"
             }
@@ -73,38 +67,57 @@ pipeline {
                 echo '═══════════════════════════════════════════'
                 echo '  Stage 5: Running Unit Tests'
                 echo '═══════════════════════════════════════════'
-                script {
-                    def unitTestOutput = sh(script: 'sbt -Dsbt.log.noformat=true -batch test 2>&1', returnStdout: true)
-                    echo unitTestOutput
-                    
-                    // Extract unit test count from output
-                    def unitMatch = (unitTestOutput =~ /Total number of tests run: (\d+)/)
-                    if (unitMatch) {
-                        env.UNIT_TEST_COUNT = unitMatch[0][1]
-                    } else {
-                        env.UNIT_TEST_COUNT = "unknown"
-                    }
-                }
-                echo ''
-                echo '═══════════════════════════════════════════'
-                echo '  Stage 5b: Running Integration Tests'
-                echo '═══════════════════════════════════════════'
-                script {
-                    def itTestOutput = sh(script: 'sbt -Dsbt.log.noformat=true -batch it:test 2>&1', returnStdout: true)
-                    echo itTestOutput
-                    
-                    // Extract integration test count from output
-                    def itMatch = (itTestOutput =~ /Total number of tests run: (\d+)/)
-                    if (itMatch) {
-                        env.IT_TEST_COUNT = itMatch[0][1]
-                    } else {
-                        env.IT_TEST_COUNT = "unknown"
-                    }
-                }
+                sh '''
+                    sbt -Dsbt.log.noformat=true -batch \
+                    "testOnly *Spec -- -h target/test-reports/unit -u target/test-reports/unit-junit"
+                '''
+                echo '✓ Unit tests completed'
             }
             post {
                 always {
-                    junit allowEmptyResults: true, testResults: 'target/test-reports/*.xml'
+                    // Publish JUnit test results
+                    junit allowEmptyResults: true, testResults: 'target/test-reports/unit-junit/*.xml'
+                    
+                    // Publish HTML test reports
+                    publishHTML([
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'target/test-reports/unit',
+                        reportFiles: 'index.html',
+                        reportName: 'Unit Test Report',
+                        reportTitles: 'Unit Test Results'
+                    ])
+                }
+            }
+        }
+        
+        stage('Integration Tests') {
+            steps {
+                echo '═══════════════════════════════════════════'
+                echo '  Stage 6: Running Integration Tests'
+                echo '═══════════════════════════════════════════'
+                sh '''
+                    sbt -Dsbt.log.noformat=true -batch \
+                    "testOnly *IntegrationSpec -- -h target/test-reports/integration -u target/test-reports/integration-junit"
+                '''
+                echo '✓ Integration tests completed'
+            }
+            post {
+                always {
+                    // Publish JUnit test results
+                    junit allowEmptyResults: true, testResults: 'target/test-reports/integration-junit/*.xml'
+                    
+                    // Publish HTML test reports
+                    publishHTML([
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'target/test-reports/integration',
+                        reportFiles: 'index.html',
+                        reportName: 'Integration Test Report',
+                        reportTitles: 'Integration Test Results'
+                    ])
                 }
             }
         }
@@ -112,28 +125,26 @@ pipeline {
         stage('Code Coverage') {
             steps {
                 echo '═══════════════════════════════════════════'
-                echo '  Stage 6: Generating Code Coverage'
+                echo '  Stage 7: Generating Code Coverage Report'
                 echo '═══════════════════════════════════════════'
                 sh 'sbt -Dsbt.log.noformat=true -batch clean coverage test coverageReport'
+                echo '✓ Coverage report generated'
             }
             post {
                 always {
-                    script {
-                        try {
-                            publishHTML([
-                                allowMissing: false,
-                                alwaysLinkToLastBuild: true,
-                                keepAll: true,
-                                reportDir: 'target/scala-2.13/scoverage-report',
-                                reportFiles: 'index.html',
-                                reportName: 'Code Coverage Report'
-                            ])
-                            archiveArtifacts artifacts: 'target/scala-2.13/scoverage-report/**/*', allowEmptyArchive: true
-                            echo '✓ Coverage report published'
-                        } catch (Exception e) {
-                            echo '⚠️ Coverage report not available'
-                        }
-                    }
+                    // Publish coverage report
+                    publishHTML([
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'target/scala-2.13/scoverage-report',
+                        reportFiles: 'index.html',
+                        reportName: 'Code Coverage Report',
+                        reportTitles: 'Scoverage Report'
+                    ])
+                    
+                    // Archive coverage data
+                    archiveArtifacts artifacts: 'target/scala-2.13/scoverage-report/**/*', allowEmptyArchive: true
                 }
             }
         }
@@ -141,17 +152,17 @@ pipeline {
         stage('Package JAR') {
             steps {
                 echo '═══════════════════════════════════════════'
-                echo '  Stage 7: Packaging Standard JAR'
+                echo '  Stage 8: Packaging Application JAR'
                 echo '═══════════════════════════════════════════'
                 sh 'sbt -Dsbt.log.noformat=true -batch package'
-                echo '✓ JAR created'
+                echo '✓ JAR packaged'
             }
         }
         
         stage('Build Fat JAR') {
             steps {
                 echo '═══════════════════════════════════════════'
-                echo '  Stage 8: Building Fat JAR (Assembly)'
+                echo '  Stage 9: Building Fat JAR with Assembly'
                 echo '═══════════════════════════════════════════'
                 sh 'sbt -Dsbt.log.noformat=true -batch assembly'
                 echo '✓ Fat JAR created'
@@ -161,42 +172,10 @@ pipeline {
         stage('Archive Artifacts') {
             steps {
                 echo '═══════════════════════════════════════════'
-                echo '  Stage 9: Archiving Build Artifacts'
+                echo '  Stage 10: Archiving Build Artifacts'
                 echo '═══════════════════════════════════════════'
-                script {
-                    archiveArtifacts artifacts: 'target/scala-2.13/*.jar', fingerprint: true, allowEmptyArchive: true
-                    
-                    sh """
-cat > build-info.txt << 'EOF'
-╔════════════════════════════════════════════════════════╗
-║           BUILD INFORMATION                            ║
-╠════════════════════════════════════════════════════════╣
-║ Build Number    : ${BUILD_NUMBER}
-║ Build Date      : \$(date '+%Y-%m-%d %H:%M:%S')
-║ Git Commit      : ${env.GIT_COMMIT_SHORT}
-║ Git Author      : ${env.GIT_AUTHOR}
-║ Jenkins Job     : ${JOB_NAME}
-╚════════════════════════════════════════════════════════╝
-
-QUALITY METRICS:
-─────────────────────────────────────────────────────────
-✓ Code Formatting   : Auto-fixed with Scalafmt
-✓ Compilation       : Successful
-✓ Unit Tests        : All passed (5/5)
-✓ Code Coverage     : Generated
-✓ JAR Packaging     : Completed
-
-ARTIFACTS:
-─────────────────────────────────────────────────────────
-- Standard JAR: target/scala-2.13/scala-jenkins-demo_2.13-1.0.0.jar
-- Fat JAR:      target/scala-2.13/scala-jenkins-demo-1.0.0-assembly.jar
-
-BUILD SUCCESSFUL ✅
-EOF
-                    """
-                    archiveArtifacts artifacts: 'build-info.txt', fingerprint: true
-                    sh 'cat build-info.txt'
-                }
+                archiveArtifacts artifacts: 'target/scala-2.13/*.jar', fingerprint: true
+                echo '✓ Artifacts archived'
             }
         }
     }
@@ -210,9 +189,18 @@ EOF
             script {
                 def duration = currentBuild.durationString.replace(' and counting', '')
                 echo "Total Duration: ${duration}"
+                
+                // Count test results
+                def testResults = junit(testResults: 'target/test-reports/**/*.xml', allowEmptyResults: true)
+                def totalTests = testResults.totalCount
+                def passedTests = testResults.totalCount - testResults.failCount
+                def failedTests = testResults.failCount
+                
+                echo "Total Tests: ${totalTests}"
+                echo "Passed: ${passedTests}"
+                echo "Failed: ${failedTests}"
             }
         }
-        
         success {
             echo ''
             echo '╔═══════════════════════════════════════════╗'
@@ -221,17 +209,16 @@ EOF
             echo '║                                           ║'
             echo '╚═══════════════════════════════════════════╝'
             echo ''
-            echo '📊 Build Summary:'
-            echo '  • All 9 stages completed successfully'
-            echo '  • Code auto-formatted with Scalafmt'
-            echo "  • All ${env.UNIT_TEST_COUNT} unit tests passed"
-            echo "  • All ${env.IT_TEST_COUNT} integration tests passed"
-            echo '  • Code coverage report generated'
-            echo '  • JAR artifacts created and archived'
+            echo 'BUILD SUCCESSFUL ✅'
             echo ''
-            echo "🎉 Ready for demo!"
+            echo '📊 Reports Available:'
+            echo '   • Unit Test Report (HTML)'
+            echo '   • Integration Test Report (HTML)'
+            echo '   • Code Coverage Report (HTML)'
+            echo '   • JUnit XML Reports'
+            echo ''
+            echo 'Click on "Unit Test Report" or "Integration Test Report" in the sidebar to view!'
         }
-        
         failure {
             echo ''
             echo '╔═══════════════════════════════════════════╗'
@@ -240,7 +227,12 @@ EOF
             echo '║                                           ║'
             echo '╚═══════════════════════════════════════════╝'
             echo ''
-            echo "Failed at stage: ${env.STAGE_NAME}"
+            script {
+                if (currentBuild.result == 'FAILURE') {
+                    echo "Failed at stage: ${env.STAGE_NAME}"
+                }
+            }
         }
     }
 }
+
