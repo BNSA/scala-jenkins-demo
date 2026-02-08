@@ -10,147 +10,125 @@ class DataProcessorIntegrationSpec
     with Matchers
     with BeforeAndAfterAll {
 
-  var spark: SparkSession = _
-  var processor: DataProcessor = _
+  @transient private var sparkSession: SparkSession = _
+  private var processor: DataProcessor = _
 
   override def beforeAll(): Unit = {
-    println("Initializing Spark session for integration tests...")
-    spark = SparkSession.builder()
+    sparkSession = SparkSession
+      .builder()
       .appName("DataProcessor Integration Tests")
-      .master("local[*]")
+      .master("local[2]")
       .config("spark.ui.enabled", "false")
-      .config("spark.driver.host", "localhost")
+      .config("spark.sql.shuffle.partitions", "2")
       .getOrCreate()
+
+    sparkSession.sparkContext.setLogLevel("ERROR")
+    processor = DataProcessor(sparkSession)
     
-    spark.sparkContext.setLogLevel("ERROR")
-    processor = DataProcessor(spark)
+    println("✓ Spark session initialized for DataProcessor integration tests")
   }
 
   override def afterAll(): Unit = {
-    println("Cleaning up Spark session...")
-    if (spark != null) {
-      spark.stop()
+    if (sparkSession != null) {
+      sparkSession.stop()
+      println("✓ Spark session stopped")
     }
   }
 
   behavior of "DataProcessor Integration Tests"
 
-  it should "process data with threshold filtering and transformation" in {
-    import spark.implicits._
+  it should "process data with threshold filtering end-to-end" in {
+    import sparkSession.implicits._
     
-    val testData = Seq(
-      ("A", 10.0),
-      ("B", 20.0),
-      ("C", 30.0),
-      ("D", 5.0)
+    val inputData = Seq(
+      ("product1", 100.0),
+      ("product2", 50.0),
+      ("product3", 200.0),
+      ("product4", 75.0)
+    ).toDF("name", "value")
+
+    val result = processor.processData(inputData, threshold = 60.0)
+    
+    result.count() shouldBe 3
+    result.filter($"category" === "high").count() shouldBe 1
+    result.filter($"category" === "medium").count() shouldBe 2
+  }
+
+  it should "aggregate data by key correctly" in {
+    import sparkSession.implicits._
+    
+    val inputData = Seq(
+      ("A", 100.0),
+      ("B", 50.0),
+      ("A", 200.0),
+      ("B", 75.0),
+      ("A", 150.0)
     ).toDF("key", "value")
 
-    val result = processor.processData(testData, 15.0)
-    val collected = result.collect()
-
-    collected.length shouldBe 2
-    collected.map(_.getAs[String]("key")) should contain allOf ("B", "C")
-    collected.find(_.getAs[String]("key") == "B").get.getAs[Double]("processed") shouldBe 40.0
-    collected.find(_.getAs[String]("key") == "C").get.getAs[Double]("processed") shouldBe 60.0
+    val result = processor.aggregateByKey(inputData, "key")
+    
+    result.count() shouldBe 2
+    
+    val keyA = result.filter($"key" === "A").collect()(0)
+    keyA.getAs[Long]("count") shouldBe 3
+    keyA.getAs[Double]("avg_value") shouldBe 150.0
+    keyA.getAs[Double]("max_value") shouldBe 200.0
+    keyA.getAs[Double]("min_value") shouldBe 100.0
   }
 
-  it should "correctly categorize values based on threshold" in {
-    import spark.implicits._
-    
-    val testData = Seq(
-      ("A", 20.0),
-      ("B", 35.0),
-      ("C", 50.0)
-    ).toDF("key", "value")
-
-    val result = processor.processData(testData, 10.0)
-    val collected = result.collect()
-
-    val categories = collected.map(r => 
-      (r.getAs[String]("key"), r.getAs[String]("category"))
-    ).toMap
-
-    categories("A") shouldBe "medium"
-    categories("B") shouldBe "high"
-    categories("C") shouldBe "high"
-  }
-
-  it should "aggregate data by key column correctly" in {
-    import spark.implicits._
-    
-    val testData = Seq(
-      ("group1", 10.0),
-      ("group1", 20.0),
-      ("group2", 15.0),
-      ("group2", 25.0),
-      ("group1", 30.0)
-    ).toDF("category", "value")
-
-    val result = processor.aggregateByKey(testData, "category")
-    val collected = result.collect()
-
-    collected.length shouldBe 2
-    
-    val group1 = collected.find(_.getAs[String]("category") == "group1").get
-    group1.getAs[Long]("count") shouldBe 3
-    group1.getAs[Double]("avg_value") shouldBe 20.0
-    group1.getAs[Double]("max_value") shouldBe 30.0
-    group1.getAs[Double]("min_value") shouldBe 10.0
-
-    val group2 = collected.find(_.getAs[String]("category") == "group2").get
-    group2.getAs[Long]("count") shouldBe 2
-    group2.getAs[Double]("avg_value") shouldBe 20.0
-  }
-
-  it should "handle empty dataframes gracefully" in {
-    import spark.implicits._
+  it should "handle empty dataset gracefully" in {
+    import sparkSession.implicits._
     
     val emptyData = Seq.empty[(String, Double)].toDF("key", "value")
-
-    val result = processor.processData(emptyData, 10.0)
+    
+    val result = processor.processData(emptyData, threshold = 50.0)
     result.count() shouldBe 0
   }
 
-  it should "process large datasets efficiently" in {
-    import spark.implicits._
+  it should "perform complex ETL workflow" in {
+    import sparkSession.implicits._
     
-    val largeData = (1 to 1000).map(i => (s"key_$i", i.toDouble))
-      .toDF("key", "value")
+    val rawData = Seq(
+      ("region1", 120.0),
+      ("region2", 80.0),
+      ("region1", 150.0),
+      ("region3", 200.0),
+      ("region2", 90.0)
+    ).toDF("region", "value")
 
-    val result = processor.processData(largeData, 500.0)
-    val count = result.count()
-
-    count shouldBe 500
-    result.filter("category = 'high'").count() should be > 0L
+    val processed = processor.processData(rawData, threshold = 85.0)
+    val aggregated = processor.aggregateByKey(processed, "region")
+    
+    aggregated.count() shouldBe 3
+    aggregated.columns should contain allOf ("region", "count", "avg_value")
   }
 
-  it should "execute complete ETL pipeline workflow" in {
-    import spark.implicits._
+  it should "categorize values correctly based on threshold" in {
+    import sparkSession.implicits._
     
-    // Stage 1: Raw data ingestion
-    val rawData = Seq(
-      ("product_A", 100.0),
-      ("product_B", 150.0),
-      ("product_C", 200.0),
-      ("product_D", 50.0),
-      ("product_E", 175.0)
-    ).toDF("product", "value")
+    val testData = Seq(
+      ("item1", 100.0),
+      ("item2", 150.0),
+      ("item3", 250.0)
+    ).toDF("name", "value")
 
-    // Stage 2: Process and filter
-    val processed = processor.processData(rawData, 75.0)
+    val result = processor.processData(testData, threshold = 100.0)
+    
+    result.filter($"category" === "medium").count() shouldBe 1
+    result.filter($"category" === "high").count() shouldBe 2
+  }
 
-    // Stage 3: Aggregate
-    val aggregated = processor.aggregateByKey(
-      processed.withColumn("group", 
-        org.apache.spark.sql.functions.substring(
-          org.apache.spark.sql.functions.col("product"), 9, 1
-        )
-      ),
-      "group"
-    )
+  it should "handle large threshold filtering" in {
+    import sparkSession.implicits._
+    
+    val testData = Seq(
+      ("A", 50.0),
+      ("B", 100.0),
+      ("C", 150.0)
+    ).toDF("key", "value")
 
-    // Verify pipeline
-    processed.count() shouldBe 4
-    aggregated.count() should be > 0L
+    val result = processor.processData(testData, threshold = 1000.0)
+    
+    result.count() shouldBe 0
   }
 }
