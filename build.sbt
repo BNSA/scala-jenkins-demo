@@ -2,15 +2,15 @@ name := "scala-jenkins-demo"
 version := "0.1.0-SNAPSHOT"
 scalaVersion := "2.13.12"
 
-lazy val IntegrationTest = config("it") extend(Test)
+lazy val It = config("it") extend(Test)
 
 lazy val root = (project in file("."))
-  .configs(IntegrationTest)
+  .configs(It)
   .settings(
-    Defaults.itSettings,
+    inConfig(It)(Defaults.testSettings),
     // Integration test settings
-    IntegrationTest / scalaSource := baseDirectory.value / "src" / "it" / "scala",
-    IntegrationTest / resourceDirectory := baseDirectory.value / "src" / "it" / "resources"
+    It / scalaSource := baseDirectory.value / "src" / "it" / "scala",
+    It / resourceDirectory := baseDirectory.value / "src" / "it" / "resources"
   )
 
 // Dependencies
@@ -36,7 +36,7 @@ scalacOptions ++= Seq(
 
 // Test options
 Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/test-reports/unit")
-IntegrationTest / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/test-reports/integration")
+It / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/test-reports/integration")
 
 // Coverage settings
 coverageEnabled := true
