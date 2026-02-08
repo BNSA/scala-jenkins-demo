@@ -61,7 +61,7 @@ class EndToEndIntegrationSpec
       ("South", 200.0),
       ("North", 150.0),
       ("East", 300.0)
-    ).toDF("region", "sales")
+    ).toDF("region", "value")
 
     val processed = processor.processData(rawRevenue, threshold = 50.0)
     val aggregated = processor.aggregateByKey(processed, "region")
@@ -79,7 +79,7 @@ class EndToEndIntegrationSpec
       ("item1", 90.0),
       ("item2", 70.0),
       ("item3", 100.0)
-    ).toDF("store", "amount")
+    ).toDF("store", "value")
 
     val result = processor.processData(priceData, threshold = finalPrice.toDouble)
     result.count() shouldBe 1
@@ -125,7 +125,7 @@ class EndToEndIntegrationSpec
       ("Q2", 18000.0),
       ("Q3", 20000.0),
       ("Q4", 22000.0)
-    ).toDF("region", "revenue")
+    ).toDF("region", "value")
 
     val filtered = processor.processData(revenueData, threshold = taxAmount.toDouble)
     val summary = processor.aggregateByKey(filtered, "region")

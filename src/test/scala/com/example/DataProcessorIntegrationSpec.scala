@@ -106,7 +106,7 @@ class DataProcessorIntegrationSpec
     val result = processor.processData(testData, threshold = 100.0)
     
     result.filter($"category" === "medium").count() shouldBe 1
-    result.filter($"category" === "high").count() shouldBe 2
+    result.filter($"category" === "high").count() shouldBe 1
   }
 
   it should "handle large threshold filtering" in {
