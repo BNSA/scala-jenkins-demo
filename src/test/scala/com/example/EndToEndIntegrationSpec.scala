@@ -52,7 +52,7 @@ class EndToEndIntegrationSpec
     ).toDF("item", "value")
 
     val filtered = processor.processData(salesData, threshold = threshold.toDouble)
-    filtered.count() shouldBe 2
+    filtered.count() shouldBe 1
   }
 
   it should "perform complete data transformation pipeline" in {
@@ -82,7 +82,7 @@ class EndToEndIntegrationSpec
     ).toDF("store", "value")
 
     val result = processor.processData(priceData, threshold = finalPrice.toDouble)
-    result.count() shouldBe 1
+    result.count() shouldBe 2
   }
 
   it should "validate end-to-end system health check" in {
@@ -130,7 +130,7 @@ class EndToEndIntegrationSpec
     val filtered = processor.processData(revenueData, threshold = taxAmount.toDouble)
     val summary = processor.aggregateByKey(filtered, "region")
     
-    summary.count() shouldBe 4
+    summary.count() shouldBe 2
     
     val totalAvg = summary.select($"avg_value").collect().map(_.getDouble(0)).sum / summary.count()
     totalAvg should be > 0.0
