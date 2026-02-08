@@ -2,28 +2,27 @@ name := "scala-jenkins-demo"
 version := "0.1.0-SNAPSHOT"
 scalaVersion := "2.13.12"
 
-lazy val It = config("it") extend(Test)
+// Integration test configuration
+lazy val IntegrationTest = config("it") extend(Test)
 
 lazy val root = (project in file("."))
-  .configs(It)
+  .configs(IntegrationTest)
   .settings(
-    inConfig(It)(Defaults.testSettings),
-    // Integration test settings
-    It / scalaSource := baseDirectory.value / "src" / "it" / "scala",
-    It / resourceDirectory := baseDirectory.value / "src" / "it" / "resources"
+    Defaults.itSettings,
+    IntegrationTest / scalaSource := baseDirectory.value / "src" / "it" / "scala",
+    IntegrationTest / resourceDirectory := baseDirectory.value / "src" / "it" / "resources"
   )
 
 // Dependencies
 libraryDependencies ++= Seq(
-  // Main dependencies
   "org.typelevel" %% "cats-core" % "2.10.0",
-  
-  // Test dependencies
   "org.scalatest" %% "scalatest" % "3.2.15" % "test,it",
   "org.scalatestplus" %% "mockito-4-6" % "3.2.15.0" % "test,it",
   
-  // HTML report generation dependency
-  "com.vladsch.flexmark" % "flexmark-all" % "0.64.8" % "test,it"
+  // Flexmark dependencies for HTML report generation
+  "com.vladsch.flexmark" % "flexmark-all" % "0.64.8" % "test,it",
+  "com.vladsch.flexmark" % "flexmark-util" % "0.64.8" % "test,it",
+  "com.vladsch.flexmark" % "flexmark-util-ast" % "0.64.8" % "test,it"
 )
 
 // Compiler options
@@ -34,9 +33,9 @@ scalacOptions ++= Seq(
   "-Xlint"
 )
 
-// Test options
+// Test options - this generates HTML reports
 Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/test-reports/unit")
-It / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/test-reports/integration")
+IntegrationTest / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/test-reports/integration")
 
 // Coverage settings
 coverageEnabled := true
@@ -44,7 +43,7 @@ coverageMinimumStmtTotal := 80
 coverageFailOnMinimum := false
 coverageHighlighting := true
 
-// Assembly settings for fat JAR
+// Assembly settings
 assembly / assemblyJarName := s"${name.value}-${version.value}.jar"
 assembly / assemblyMergeStrategy := {
   case PathList("META-INF", xs @ _*) => MergeStrategy.discard
