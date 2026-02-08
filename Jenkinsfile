@@ -99,7 +99,7 @@ pipeline {
                 echo '═══════════════════════════════════════════'
                 sh '''
                     sbt -Dsbt.log.noformat=true -batch \
-                    "testOnly *IntegrationSpec -- -h target/test-reports/integration -u target/test-reports/integration-junit"
+                    "it:testOnly *IntegrationSpec -- -h target/test-reports/integration -u target/test-reports/integration-junit"
                 '''
                 echo '✓ Integration tests completed'
             }
@@ -235,4 +235,3 @@ pipeline {
         }
     }
 }
-
