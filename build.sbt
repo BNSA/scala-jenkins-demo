@@ -2,17 +2,17 @@ name := "scala-jenkins-demo"
 version := "1.0"
 scalaVersion := "2.13.12"
 
-// Configure IntegrationTest as a separate test configuration
-lazy val IntegrationTest = config("it") extend(Test)
-configs(IntegrationTest)
-inConfig(IntegrationTest)(Defaults.testSettings)
+// Configure It (integration test) as a separate test configuration
+lazy val It = config("it") extend(Test)
+configs(It)
+inConfig(It)(Defaults.testSettings)
 
 // CRITICAL: Fork tests in separate JVM with proper Java module access
 Test / fork := true
 Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Flat
 
-IntegrationTest / fork := true
-IntegrationTest / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Flat
+It / fork := true
+It / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Flat
 
 // Java options for unit tests
 Test / javaOptions ++= Seq(
@@ -21,7 +21,7 @@ Test / javaOptions ++= Seq(
 )
 
 // Java options for integration tests (Spark requires these)
-IntegrationTest / javaOptions ++= Seq(
+It / javaOptions ++= Seq(
   "--add-opens=java.base/java.lang=ALL-UNNAMED",
   "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
   "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED",
