@@ -2,16 +2,12 @@ name := "scala-jenkins-demo"
 version := "0.1.0-SNAPSHOT"
 scalaVersion := "2.13.12"
 
-// Integration test configuration
-lazy val IntegrationTest = config("it") extend(Test)
+// Use sbt's built-in IntegrationTest configuration
+configs(IntegrationTest)
+Defaults.itSettings
 
-lazy val root = (project in file("."))
-  .configs(IntegrationTest)
-  .settings(
-    Defaults.itSettings,
-    IntegrationTest / scalaSource := baseDirectory.value / "src" / "it" / "scala",
-    IntegrationTest / resourceDirectory := baseDirectory.value / "src" / "it" / "resources"
-  )
+IntegrationTest / scalaSource := baseDirectory.value / "src" / "it" / "scala"
+IntegrationTest / resourceDirectory := baseDirectory.value / "src" / "it" / "resources"
 
 // Dependencies
 libraryDependencies ++= Seq(
