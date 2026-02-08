@@ -73,12 +73,34 @@ pipeline {
                 echo '═══════════════════════════════════════════'
                 echo '  Stage 5: Running Unit Tests'
                 echo '═══════════════════════════════════════════'
-                sh 'sbt -Dsbt.log.noformat=true -batch test'
+                script {
+                    def unitTestOutput = sh(script: 'sbt -Dsbt.log.noformat=true -batch test 2>&1', returnStdout: true)
+                    echo unitTestOutput
+                    
+                    // Extract unit test count from output
+                    def unitMatch = (unitTestOutput =~ /Total number of tests run: (\d+)/)
+                    if (unitMatch) {
+                        env.UNIT_TEST_COUNT = unitMatch[0][1]
+                    } else {
+                        env.UNIT_TEST_COUNT = "unknown"
+                    }
+                }
                 echo ''
                 echo '═══════════════════════════════════════════'
                 echo '  Stage 5b: Running Integration Tests'
                 echo '═══════════════════════════════════════════'
-                sh 'sbt -Dsbt.log.noformat=true -batch it:test'
+                script {
+                    def itTestOutput = sh(script: 'sbt -Dsbt.log.noformat=true -batch it:test 2>&1', returnStdout: true)
+                    echo itTestOutput
+                    
+                    // Extract integration test count from output
+                    def itMatch = (itTestOutput =~ /Total number of tests run: (\d+)/)
+                    if (itMatch) {
+                        env.IT_TEST_COUNT = itMatch[0][1]
+                    } else {
+                        env.IT_TEST_COUNT = "unknown"
+                    }
+                }
             }
             post {
                 always {
@@ -202,7 +224,8 @@ EOF
             echo '📊 Build Summary:'
             echo '  • All 9 stages completed successfully'
             echo '  • Code auto-formatted with Scalafmt'
-            echo '  • All 5 unit tests passed'
+            echo "  • All ${env.UNIT_TEST_COUNT} unit tests passed"
+            echo "  • All ${env.IT_TEST_COUNT} integration tests passed"
             echo '  • Code coverage report generated'
             echo '  • JAR artifacts created and archived'
             echo ''
