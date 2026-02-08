@@ -2,12 +2,27 @@ name := "scala-jenkins-demo"
 version := "1.0"
 scalaVersion := "2.13.12"
 
-// Classloader fix for Spark integration tests
+// CRITICAL: Fork tests in separate JVM with proper Java module access
+Test / fork := true
 Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Flat
 
-// Add Java options for Spark to access internal JDK modules
+// Java options for Spark tests - applied to forked JVM
 Test / javaOptions ++= Seq(
-  "--add-exports=java.base/sun.nio.ch=ALL-UNNAMED"
+  "--add-opens=java.base/java.lang=ALL-UNNAMED",
+  "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
+  "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED",
+  "--add-opens=java.base/java.io=ALL-UNNAMED",
+  "--add-opens=java.base/java.net=ALL-UNNAMED",
+  "--add-opens=java.base/java.nio=ALL-UNNAMED",
+  "--add-opens=java.base/java.util=ALL-UNNAMED",
+  "--add-opens=java.base/java.util.concurrent=ALL-UNNAMED",
+  "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED",
+  "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED",
+  "--add-opens=java.base/sun.nio.cs=ALL-UNNAMED",
+  "--add-opens=java.base/sun.security.action=ALL-UNNAMED",
+  "--add-opens=java.base/sun.util.calendar=ALL-UNNAMED",
+  "-Xmx2g",
+  "-XX:+UseG1GC"
 )
 
 // Spark and Hadoop dependencies
