@@ -1,19 +1,54 @@
 name := "scala-jenkins-demo"
-version := "0.1.0-SNAPSHOT"
+version := "1.0"
 scalaVersion := "2.13.12"
 
-// Use sbt's built-in IntegrationTest configuration
-configs(IntegrationTest)
-Defaults.itSettings
+// Configure It (integration test) as a separate test configuration
+lazy val It = config("it") extend(Test)
+configs(It)
+inConfig(It)(Defaults.testSettings)
 
-IntegrationTest / scalaSource := baseDirectory.value / "src" / "it" / "scala"
-IntegrationTest / resourceDirectory := baseDirectory.value / "src" / "it" / "resources"
+// CRITICAL: Fork tests in separate JVM with proper Java module access
+Test / fork := true
+Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Flat
 
-// Dependencies
+It / fork := true
+It / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Flat
+
+// Java options for unit tests
+Test / javaOptions ++= Seq(
+  "-Xmx2g",
+  "-XX:+UseG1GC"
+)
+
+// Java options for integration tests (Spark requires these)
+It / javaOptions ++= Seq(
+  "--add-opens=java.base/java.lang=ALL-UNNAMED",
+  "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
+  "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED",
+  "--add-opens=java.base/java.io=ALL-UNNAMED",
+  "--add-opens=java.base/java.net=ALL-UNNAMED",
+  "--add-opens=java.base/java.nio=ALL-UNNAMED",
+  "--add-opens=java.base/java.util=ALL-UNNAMED",
+  "--add-opens=java.base/java.util.concurrent=ALL-UNNAMED",
+  "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED",
+  "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED",
+  "--add-opens=java.base/sun.nio.cs=ALL-UNNAMED",
+  "--add-opens=java.base/sun.security.action=ALL-UNNAMED",
+  "--add-opens=java.base/sun.util.calendar=ALL-UNNAMED",
+  "-Xmx2g",
+  "-XX:+UseG1GC"
+)
+
+// Spark and Hadoop dependencies
 libraryDependencies ++= Seq(
-  "org.typelevel" %% "cats-core" % "2.10.0",
-  "org.scalatest" %% "scalatest" % "3.2.15" % "test,it",
-  "org.scalatestplus" %% "mockito-4-6" % "3.2.15.0" % "test,it",
+  "org.apache.spark" %% "spark-core" % "3.5.0",
+  "org.apache.spark" %% "spark-sql" % "3.5.0",
+  "org.apache.hadoop" % "hadoop-client" % "3.3.6",
+  "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5",
+  "ch.qos.logback" % "logback-classic" % "1.4.11",
+  
+  // Test dependencies (available for both Test and IntegrationTest)
+  "org.scalatest" %% "scalatest" % "3.2.17" % "test,it",
   
   // Flexmark dependencies for HTML report generation
   "com.vladsch.flexmark" % "flexmark-all" % "0.64.8" % "test,it",
@@ -21,27 +56,24 @@ libraryDependencies ++= Seq(
   "com.vladsch.flexmark" % "flexmark-util-ast" % "0.64.8" % "test,it"
 )
 
-// Compiler options
-scalacOptions ++= Seq(
-  "-deprecation",
-  "-feature",
-  "-unchecked",
-  "-Xlint"
-)
-
 // Test options - this generates HTML reports
 Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/test-reports/unit")
-IntegrationTest / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/test-reports/integration")
+It / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/test-reports/integration")
 
-// Coverage settings
-coverageEnabled := true
+// Assembly settings for creating fat JAR
+assembly / assemblyMergeStrategy := {
+  case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+  case PathList("reference.conf")    => MergeStrategy.concat
+  case x if x.endsWith(".proto")     => MergeStrategy.rename
+  case _                             => MergeStrategy.first
+}
+
+assembly / assemblyJarName := s"${name.value}-${version.value}.jar"
+
+// Scoverage settings
 coverageMinimumStmtTotal := 80
 coverageFailOnMinimum := false
 coverageHighlighting := true
 
-// Assembly settings
-assembly / assemblyJarName := s"${name.value}-${version.value}.jar"
-assembly / assemblyMergeStrategy := {
-  case PathList("META-INF", xs @ _*) => MergeStrategy.discard
-  case x => MergeStrategy.first
-}
+// Scalafmt
+scalafmtOnCompile := true
