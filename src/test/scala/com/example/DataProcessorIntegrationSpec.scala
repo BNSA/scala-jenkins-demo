@@ -5,41 +5,40 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.BeforeAndAfterAll
 import org.apache.spark.sql.SparkSession
 
+object DataProcessorIntegrationSpecHelper {
+  lazy val spark: SparkSession = SparkSession
+    .builder()
+    .appName("DataProcessor Integration Tests")
+    .master("local[2]")
+    .config("spark.ui.enabled", "false")
+    .config("spark.sql.shuffle.partitions", "2")
+    .getOrCreate()
+    
+  spark.sparkContext.setLogLevel("ERROR")
+}
+
 class DataProcessorIntegrationSpec
     extends AnyFlatSpec
     with Matchers
     with BeforeAndAfterAll {
 
-  @transient private var sparkSession: SparkSession = _
+  import DataProcessorIntegrationSpecHelper.spark
+  import spark.implicits._
+
   private var processor: DataProcessor = _
 
   override def beforeAll(): Unit = {
-    sparkSession = SparkSession
-      .builder()
-      .appName("DataProcessor Integration Tests")
-      .master("local[2]")
-      .config("spark.ui.enabled", "false")
-      .config("spark.sql.shuffle.partitions", "2")
-      .getOrCreate()
-
-    sparkSession.sparkContext.setLogLevel("ERROR")
-    processor = DataProcessor(sparkSession)
-    
+    processor = DataProcessor(spark)
     println("✓ Spark session initialized for DataProcessor integration tests")
   }
 
   override def afterAll(): Unit = {
-    if (sparkSession != null) {
-      sparkSession.stop()
-      println("✓ Spark session stopped")
-    }
+    println("✓ DataProcessor integration tests completed")
   }
 
   behavior of "DataProcessor Integration Tests"
 
   it should "process data with threshold filtering end-to-end" in {
-    import sparkSession.implicits._
-    
     val inputData = Seq(
       ("product1", 100.0),
       ("product2", 50.0),
@@ -55,8 +54,6 @@ class DataProcessorIntegrationSpec
   }
 
   it should "aggregate data by key correctly" in {
-    import sparkSession.implicits._
-    
     val inputData = Seq(
       ("A", 100.0),
       ("B", 50.0),
@@ -77,8 +74,6 @@ class DataProcessorIntegrationSpec
   }
 
   it should "handle empty dataset gracefully" in {
-    import sparkSession.implicits._
-    
     val emptyData = Seq.empty[(String, Double)].toDF("key", "value")
     
     val result = processor.processData(emptyData, threshold = 50.0)
@@ -86,8 +81,6 @@ class DataProcessorIntegrationSpec
   }
 
   it should "perform complex ETL workflow" in {
-    import sparkSession.implicits._
-    
     val rawData = Seq(
       ("region1", 120.0),
       ("region2", 80.0),
@@ -104,8 +97,6 @@ class DataProcessorIntegrationSpec
   }
 
   it should "categorize values correctly based on threshold" in {
-    import sparkSession.implicits._
-    
     val testData = Seq(
       ("item1", 100.0),
       ("item2", 150.0),
@@ -119,8 +110,6 @@ class DataProcessorIntegrationSpec
   }
 
   it should "handle large threshold filtering" in {
-    import sparkSession.implicits._
-    
     val testData = Seq(
       ("A", 50.0),
       ("B", 100.0),

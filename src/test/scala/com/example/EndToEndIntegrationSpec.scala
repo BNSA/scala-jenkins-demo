@@ -5,42 +5,41 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.BeforeAndAfterAll
 import org.apache.spark.sql.SparkSession
 
+object EndToEndIntegrationSpecHelper {
+  lazy val spark: SparkSession = SparkSession
+    .builder()
+    .appName("End-to-End Integration Tests")
+    .master("local[2]")
+    .config("spark.ui.enabled", "false")
+    .config("spark.sql.shuffle.partitions", "2")
+    .getOrCreate()
+    
+  spark.sparkContext.setLogLevel("ERROR")
+}
+
 class EndToEndIntegrationSpec
     extends AnyFlatSpec
     with Matchers
     with BeforeAndAfterAll {
 
+  import EndToEndIntegrationSpecHelper.spark
+  import spark.implicits._
+
   private val calculator = new Calculator()
-  @transient private var sparkSession: SparkSession = _
   private var processor: DataProcessor = _
 
   override def beforeAll(): Unit = {
-    sparkSession = SparkSession
-      .builder()
-      .appName("End-to-End Integration Tests")
-      .master("local[2]")
-      .config("spark.ui.enabled", "false")
-      .config("spark.sql.shuffle.partitions", "2")
-      .getOrCreate()
-
-    sparkSession.sparkContext.setLogLevel("ERROR")
-    processor = DataProcessor(sparkSession)
-    
+    processor = DataProcessor(spark)
     println("✓ Complete integration test environment initialized")
   }
 
   override def afterAll(): Unit = {
-    if (sparkSession != null) {
-      sparkSession.stop()
-      println("✓ Complete integration test environment cleaned up")
-    }
+    println("✓ Complete integration test environment cleaned up")
   }
 
   behavior of "End-to-End Integration Tests"
 
   it should "integrate Calculator and DataProcessor for business workflow" in {
-    import sparkSession.implicits._
-    
     val baseValue = 100
     val multiplier = 3
     val threshold = calculator.multiply(baseValue, multiplier)
@@ -57,8 +56,6 @@ class EndToEndIntegrationSpec
   }
 
   it should "perform complete data transformation pipeline" in {
-    import sparkSession.implicits._
-    
     val rawRevenue = Seq(
       ("North", 100.0),
       ("South", 200.0),
@@ -74,8 +71,6 @@ class EndToEndIntegrationSpec
   }
 
   it should "handle calculator results in data processing workflows" in {
-    import sparkSession.implicits._
-    
     val discount = 20
     val basePrice = 100
     val finalPrice = calculator.subtract(basePrice, discount)
@@ -91,8 +86,6 @@ class EndToEndIntegrationSpec
   }
 
   it should "validate end-to-end system health check" in {
-    import sparkSession.implicits._
-    
     val calculatorTest = calculator.add(50, 50)
     calculatorTest shouldBe 100
 
@@ -102,8 +95,6 @@ class EndToEndIntegrationSpec
   }
 
   it should "perform complex aggregation with calculated thresholds" in {
-    import sparkSession.implicits._
-    
     val healthData = Seq(("test", 100.0)).toDF("key", "value")
     val aggregated = processor.aggregateByKey(healthData, "key")
     
@@ -112,8 +103,6 @@ class EndToEndIntegrationSpec
   }
 
   it should "handle large-scale data processing with calculations" in {
-    import sparkSession.implicits._
-    
     val batchSize = 100
     val multiplier = 2
     val expectedSize = calculator.multiply(batchSize, multiplier)
@@ -127,8 +116,6 @@ class EndToEndIntegrationSpec
   }
 
   it should "integrate all components for financial reporting workflow" in {
-    import sparkSession.implicits._
-    
     val taxRate = 18
     val baseAmount = 1000
     val taxAmount = calculator.multiply(baseAmount, taxRate)
