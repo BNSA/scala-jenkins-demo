@@ -1,48 +1,41 @@
 name := "scala-jenkins-demo"
-version := "1.0.0"
+version := "1.0"
 scalaVersion := "2.13.12"
 
-val sparkVersion = "3.5.0"
+// Classloader fix for Spark integration tests
+Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Flat
 
-ThisBuild / libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always
+// Add Java options for Spark to access internal JDK modules
+Test / javaOptions ++= Seq(
+  "--add-exports=java.base/sun.nio.ch=ALL-UNNAMED"
+)
 
+// Spark and Hadoop dependencies
 libraryDependencies ++= Seq(
-  "org.apache.spark" %% "spark-core" % sparkVersion % Provided,
-  "org.apache.spark" %% "spark-sql" % sparkVersion % Provided,
-  "org.scalatest" %% "scalatest" % "3.2.17" % Test,
+  "org.apache.spark" %% "spark-core" % "3.5.0",
+  "org.apache.spark" %% "spark-sql" % "3.5.0",
+  "org.apache.hadoop" % "hadoop-client" % "3.3.6",
   "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5",
-  "ch.qos.logback" % "logback-classic" % "1.4.14"
+  "ch.qos.logback" % "logback-classic" % "1.4.11",
+  
+  // Test dependencies
+  "org.scalatest" %% "scalatest" % "3.2.17" % Test
 )
 
-dependencyOverrides ++= Seq(
-  "org.scala-lang.modules" %% "scala-xml" % "2.2.0",
-  "org.scalariform" %% "scalariform" % "0.2.10",
-  "org.scalactic" %% "scalactic" % "3.2.17"
-)
+// Assembly settings for creating fat JAR
+assembly / assemblyMergeStrategy := {
+  case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+  case PathList("reference.conf")    => MergeStrategy.concat
+  case x if x.endsWith(".proto")     => MergeStrategy.rename
+  case _                             => MergeStrategy.first
+}
 
-scalacOptions ++= Seq(
-  "-encoding", "UTF-8",
-  "-deprecation",
-  "-feature",
-  "-unchecked"
-)
+assembly / assemblyJarName := s"${name.value}-${version.value}.jar"
 
-Test / testOptions := Seq(
-  Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports")
-)
-
-coverageMinimumStmtTotal := 40
+// Scoverage settings
+coverageMinimumStmtTotal := 80
 coverageFailOnMinimum := false
 coverageHighlighting := true
 
-assembly / assemblyJarName := s"${name.value}-${version.value}-assembly.jar"
-
-assembly / assemblyMergeStrategy := {
-  case PathList("META-INF", xs @ _*) => xs match {
-    case "MANIFEST.MF" :: Nil => MergeStrategy.discard
-    case "services" :: _ => MergeStrategy.concat
-    case _ => MergeStrategy.discard
-  }
-  case "reference.conf" => MergeStrategy.concat
-  case _ => MergeStrategy.first
-}
+// Scalafmt
+scalafmtOnCompile := true
