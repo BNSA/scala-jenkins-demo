@@ -74,6 +74,11 @@ pipeline {
                 echo '  Stage 5: Running Unit Tests'
                 echo '═══════════════════════════════════════════'
                 sh 'sbt -Dsbt.log.noformat=true -batch test'
+                echo ''
+                echo '═══════════════════════════════════════════'
+                echo '  Stage 5b: Running Integration Tests'
+                echo '═══════════════════════════════════════════'
+                sh 'sbt -Dsbt.log.noformat=true -batch it:test'
             }
             post {
                 always {

@@ -2,12 +2,26 @@ name := "scala-jenkins-demo"
 version := "1.0"
 scalaVersion := "2.13.12"
 
+// Configure IntegrationTest as a separate test configuration
+lazy val IntegrationTest = config("it") extend(Test)
+configs(IntegrationTest)
+inConfig(IntegrationTest)(Defaults.testSettings)
+
 // CRITICAL: Fork tests in separate JVM with proper Java module access
 Test / fork := true
 Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Flat
 
-// Java options for Spark tests - applied to forked JVM
+IntegrationTest / fork := true
+IntegrationTest / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Flat
+
+// Java options for unit tests
 Test / javaOptions ++= Seq(
+  "-Xmx2g",
+  "-XX:+UseG1GC"
+)
+
+// Java options for integration tests (Spark requires these)
+IntegrationTest / javaOptions ++= Seq(
   "--add-opens=java.base/java.lang=ALL-UNNAMED",
   "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
   "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED",
@@ -33,8 +47,8 @@ libraryDependencies ++= Seq(
   "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5",
   "ch.qos.logback" % "logback-classic" % "1.4.11",
   
-  // Test dependencies
-  "org.scalatest" %% "scalatest" % "3.2.17" % Test
+  // Test dependencies (available for both Test and IntegrationTest)
+  "org.scalatest" %% "scalatest" % "3.2.17" % "test,it"
 )
 
 // Assembly settings for creating fat JAR
