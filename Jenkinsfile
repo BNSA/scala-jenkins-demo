@@ -2,7 +2,7 @@ pipeline {
     agent any
     
     environment {
-        SBT_OPTS = '-Xmx2048M -Xss2M'
+        SBT_OPTS = '-Xmx1024M -Xss1M -XX:+UseG1GC'  // Reduced memory usage
         VERSION = "${BUILD_NUMBER}"
         SCANNER_HOME = tool 'SonarQube Scanner'
     }
@@ -54,7 +54,7 @@ pipeline {
                 echo '═══════════════════════════════════════════'
                 echo '  Stage 3: Auto-formatting with Scalafmt'
                 echo '═══════════════════════════════════════════'
-                sh 'sbt -Dsbt.log.noformat=true -batch scalafmtAll scalafmtSbt'
+                sh 'sbt scalafmtAll scalafmtSbt'
                 echo '✓ Code automatically formatted'
             }
         }
@@ -64,7 +64,7 @@ pipeline {
                 echo '═══════════════════════════════════════════'
                 echo '  Stage 4: Compiling Scala Code'
                 echo '═══════════════════════════════════════════'
-                sh 'sbt -Dsbt.log.noformat=true -batch clean compile Test/compile'
+                sh 'sbt compile Test/compile'
                 echo '✓ Compilation successful'
             }
         }
@@ -74,7 +74,7 @@ pipeline {
                 echo '═══════════════════════════════════════════'
                 echo '  Stage 5: Running Unit Tests'
                 echo '═══════════════════════════════════════════'
-                sh 'sbt -Dsbt.log.noformat=true -batch test'
+                sh 'sbt test'
             }
             post {
                 always {
@@ -88,7 +88,7 @@ pipeline {
                 echo '═══════════════════════════════════════════'
                 echo '  Stage 6: Generating Code Coverage'
                 echo '═══════════════════════════════════════════'
-                sh 'sbt -Dsbt.log.noformat=true -batch clean coverage test coverageReport'
+                sh 'sbt coverage test coverageReport'
             }
             post {
                 always {
@@ -153,7 +153,7 @@ pipeline {
                 echo '═══════════════════════════════════════════'
                 echo '  Stage 9: Packaging Standard JAR'
                 echo '═══════════════════════════════════════════'
-                sh 'sbt -Dsbt.log.noformat=true -batch package'
+                sh 'sbt package'
                 echo '✓ JAR created'
             }
         }
@@ -163,7 +163,7 @@ pipeline {
                 echo '═══════════════════════════════════════════'
                 echo '  Stage 10: Building Fat JAR (Assembly)'
                 echo '═══════════════════════════════════════════'
-                sh 'sbt -Dsbt.log.noformat=true -batch assembly'
+                sh 'sbt assembly'
                 echo '✓ Fat JAR created'
             }
         }
