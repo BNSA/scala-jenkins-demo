@@ -110,11 +110,44 @@ pipeline {
                 }
             }
         }
+
+        stage('SonarQube Analysis') {
+            steps {
+                echo '═══════════════════════════════════════════'
+                echo '  Stage 7: SonarQube Code Analysis'
+                echo '═══════════════════════════════════════════'
+                withSonarQubeEnv('SonarQube') {
+                    sh '''
+                        sbt -Dsbt.log.noformat=true \
+                        "-Dsonar.projectKey=scala-jenkins-demo" \
+                        "-Dsonar.projectName=Scala Jenkins Demo" \
+                        "-Dsonar.sources=src/main/scala" \
+                        "-Dsonar.tests=src/test/scala" \
+                        "-Dsonar.scala.version=2.13" \
+                        "-Dsonar.scoverage.reportPath=target/scala-2.13/scoverage-report/scoverage.xml" \
+                        sonarScan
+                    '''
+                }
+                echo '✓ SonarQube analysis completed'
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                echo '═══════════════════════════════════════════'
+                echo '  Stage 8: Checking Quality Gate'
+                echo '═══════════════════════════════════════════'
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: false
+                }
+                echo '✓ Quality Gate check completed'
+            }
+        }
         
         stage('Package JAR') {
             steps {
                 echo '═══════════════════════════════════════════'
-                echo '  Stage 7: Packaging Standard JAR'
+                echo '  Stage 9: Packaging Standard JAR'
                 echo '═══════════════════════════════════════════'
                 sh 'sbt -Dsbt.log.noformat=true -batch package'
                 echo '✓ JAR created'
@@ -124,7 +157,7 @@ pipeline {
         stage('Build Fat JAR') {
             steps {
                 echo '═══════════════════════════════════════════'
-                echo '  Stage 8: Building Fat JAR (Assembly)'
+                echo '  Stage 10: Building Fat JAR (Assembly)'
                 echo '═══════════════════════════════════════════'
                 sh 'sbt -Dsbt.log.noformat=true -batch assembly'
                 echo '✓ Fat JAR created'
@@ -134,7 +167,7 @@ pipeline {
         stage('Archive Artifacts') {
             steps {
                 echo '═══════════════════════════════════════════'
-                echo '  Stage 9: Archiving Build Artifacts'
+                echo '  Stage 11: Archiving Build Artifacts'
                 echo '═══════════════════════════════════════════'
                 script {
                     archiveArtifacts artifacts: 'target/scala-2.13/*.jar', fingerprint: true, allowEmptyArchive: true
@@ -155,8 +188,10 @@ QUALITY METRICS:
 ─────────────────────────────────────────────────────────
 ✓ Code Formatting   : Auto-fixed with Scalafmt
 ✓ Compilation       : Successful
-✓ Unit Tests        : All passed (5/5)
+✓ Unit Tests        : All passed
 ✓ Code Coverage     : Generated
+✓ SonarQube         : Analysis completed
+✓ Quality Gate      : Checked
 ✓ JAR Packaging     : Completed
 
 ARTIFACTS:
@@ -195,10 +230,12 @@ EOF
             echo '╚═══════════════════════════════════════════╝'
             echo ''
             echo '📊 Build Summary:'
-            echo '  • All 9 stages completed successfully'
+            echo '  • All 11 stages completed successfully'
             echo '  • Code auto-formatted with Scalafmt'
-            echo '  • All 5 unit tests passed'
+            echo '  • All unit tests passed'
             echo '  • Code coverage report generated'
+            echo '  • SonarQube analysis completed'
+            echo '  • Quality Gate checked'
             echo '  • JAR artifacts created and archived'
             echo ''
             echo "🎉 Ready for demo!"
@@ -216,3 +253,4 @@ EOF
         }
     }
 }
+
