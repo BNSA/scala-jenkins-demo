@@ -112,25 +112,16 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
-            steps {
-                echo '═══════════════════════════════════════════'
-                echo '  Stage 7: SonarQube Code Analysis'
-                echo '═══════════════════════════════════════════'
-                withSonarQubeEnv('SonarQube') {
-                    sh '''
-                        sbt -Dsbt.log.noformat=true \
-                        "-Dsonar.projectKey=scala-jenkins-demo" \
-                        "-Dsonar.projectName=Scala Jenkins Demo" \
-                        "-Dsonar.sources=src/main/scala" \
-                        "-Dsonar.tests=src/test/scala" \
-                        "-Dsonar.scala.version=2.13" \
-                        "-Dsonar.scoverage.reportPath=target/scala-2.13/scoverage-report/scoverage.xml" \
-                        sonarScan
-                    '''
-                }
-                echo '✓ SonarQube analysis completed'
-            }
+    steps {
+        echo '═══════════════════════════════════════════'
+        echo '  Stage 7: SonarQube Code Analysis'
+        echo '═══════════════════════════════════════════'
+        withSonarQubeEnv('SonarQube') {
+            sh 'sbt -Dsbt.log.noformat=true -batch sonarScan'
         }
+        echo '✓ SonarQube analysis completed'
+    }
+}
 
         stage('Quality Gate') {
             steps {
