@@ -124,6 +124,7 @@ pipeline {
                                 -Dsonar.projectKey=scala-jenkins-demo \
                                 -Dsonar.projectName="Scala Jenkins Demo" \
                                 -Dsonar.projectVersion=${BUILD_NUMBER} \
+                                -Dsonar.host.url=http://13.71.48.197:9000 \
                                 -Dsonar.sources=src/main/scala \
                                 -Dsonar.tests=src/test/scala \
                                 -Dsonar.sourceEncoding=UTF-8 \
