@@ -4,6 +4,7 @@ pipeline {
     environment {
         SBT_OPTS = '-Xmx2048M -Xss2M'
         VERSION = "${BUILD_NUMBER}"
+        SCANNER_HOME = tool 'SonarQube Scanner'
     }
     
     options {
@@ -112,16 +113,28 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
-    steps {
-        echo '═══════════════════════════════════════════'
-        echo '  Stage 7: SonarQube Code Analysis'
-        echo '═══════════════════════════════════════════'
-        withSonarQubeEnv('SonarQube') {
-            sh 'sbt -Dsbt.log.noformat=true -batch sonarScan'
+            steps {
+                echo '═══════════════════════════════════════════'
+                echo '  Stage 7: SonarQube Code Analysis'
+                echo '═══════════════════════════════════════════'
+                script {
+                    withSonarQubeEnv('SonarQube') {
+                        sh '''
+                            ${SCANNER_HOME}/bin/sonar-scanner \
+                                -Dsonar.projectKey=scala-jenkins-demo \
+                                -Dsonar.projectName="Scala Jenkins Demo" \
+                                -Dsonar.projectVersion=${BUILD_NUMBER} \
+                                -Dsonar.sources=src/main/scala \
+                                -Dsonar.tests=src/test/scala \
+                                -Dsonar.sourceEncoding=UTF-8 \
+                                -Dsonar.scala.version=2.13 \
+                                -Dsonar.scala.scoverage.reportPath=target/scala-2.13/scoverage-report/scoverage.xml
+                        '''
+                    }
+                }
+                echo '✓ SonarQube analysis completed'
+            }
         }
-        echo '✓ SonarQube analysis completed'
-    }
-}
 
         stage('Quality Gate') {
             steps {
